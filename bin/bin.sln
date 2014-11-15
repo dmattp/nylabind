@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LbindPdcurses", "..\curses\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NylonSqlite", "..\sqlite\NylonSqlite.vcxproj", "{39039F88-18D0-45B1-8E9A-955F31330ABB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Luasql", "..\luasql\Luasql.vcxproj", "{5A16A672-CFEB-4A51-8CA1-C5DB9552822D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +27,10 @@ Global
 		{39039F88-18D0-45B1-8E9A-955F31330ABB}.Debug|Win32.Build.0 = Debug|Win32
 		{39039F88-18D0-45B1-8E9A-955F31330ABB}.Release|Win32.ActiveCfg = Release|Win32
 		{39039F88-18D0-45B1-8E9A-955F31330ABB}.Release|Win32.Build.0 = Release|Win32
+		{5A16A672-CFEB-4A51-8CA1-C5DB9552822D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5A16A672-CFEB-4A51-8CA1-C5DB9552822D}.Debug|Win32.Build.0 = Debug|Win32
+		{5A16A672-CFEB-4A51-8CA1-C5DB9552822D}.Release|Win32.ActiveCfg = Release|Win32
+		{5A16A672-CFEB-4A51-8CA1-C5DB9552822D}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
