@@ -4,6 +4,13 @@ Nylabind Copyright (c) 2013 David M. Placek - Distributed under MIT License
 
 Nylabind provides a set of library bindings which are compatible with the Nylon/Luabind framework.
 
+Currently provided are bindings for:
+
+* Curses (via Pdcurses for Windows)
+* Sqlite
+* SQL/ODBC
+* OS (linux/windows operating system APIs)
+
 # Status
 
 This is currently maintained primarily for the windows environment but should also mostly work for linux if you build manually (no CMake build yet).
