@@ -21,4 +21,5 @@ ipch
 *.cache
 *.manifest
 *.res
-
+*.opensdf
+*.sdf
