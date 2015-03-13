@@ -11,6 +11,14 @@
 #include "objidl.h"
 
 
+#ifdef _WINDOWS
+# include <codecvt>
+#else
+# include <locale>
+#endif
+
+
+
 namespace {
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
@@ -238,6 +246,53 @@ BOOL SetPrivilege(
         OpenProcessToken( GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken );
         SetPrivilege( hToken, L"SeCreateGlobalPrivilege", TRUE );
     }
+
+    // these should really be moved to a separate "OS support" library, but
+    // it was convenient to have them here when I didn't have that yet.
+    // Sorry for the mess.
+    luabind::object systemTimeToLua( lua_State* L, const SYSTEMTIME& stTimestamp )
+    {
+        luabind::object t = luabind::newtable( L );
+
+        t["y"] = stTimestamp.wYear;
+        t["m"] = stTimestamp.wMonth;
+        t["d"] = stTimestamp.wDay;
+        t["H"] = stTimestamp.wHour;
+        t["M"] = stTimestamp.wMinute;
+        t["S"] = stTimestamp.wSecond;
+        t["mil"] = stTimestamp.wMilliseconds;
+        
+        return t;
+    }
+    luabind::object systemTimeToLua( lua_State* L, const FILETIME& ftTimestamp )
+    {
+        SYSTEMTIME stTimestamp;
+        FileTimeToSystemTime( &ftTimestamp, &stTimestamp );
+        return systemTimeToLua( L, stTimestamp );
+    }
+
+    luabind::object GetFileTime_( lua_State* L, const std::string& fname )
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        std::wstring wpath = converter.from_bytes( fname );
+        luabind::object times = luabind::newtable( L );
+        FILETIME ftcreate;
+        FILETIME ftaccess;
+        FILETIME ftwrite;
+        HANDLE hFile = CreateFile( wpath.c_str(), GENERIC_READ, FILE_SHARE_READ,
+            NULL, OPEN_EXISTING, 0, NULL);
+        BOOL rc = ::GetFileTime( hFile, &ftcreate, &ftaccess, &ftwrite );
+        if( rc )
+        {
+            times["create"] = systemTimeToLua( L, ftcreate );
+            times["access"] = systemTimeToLua( L, ftaccess );
+            times["write"]  = systemTimeToLua( L, ftwrite );
+        }
+
+        CloseHandle( hFile );
+
+        return times;
+    }
 #endif 
 
     bool IsWindows()
@@ -278,6 +333,7 @@ extern "C" DLLEXPORT  int luaopen_NylonOs( lua_State* L )
        ,def("IsWindows", &IsWindows)
 #ifdef _WINDOWS       
        ,def( "addCreateGlobalPrivilege", &addCreateGlobalPrivilege )
+       ,def( "GetFileTime", &GetFileTime_ )
 #endif 
    ];
    

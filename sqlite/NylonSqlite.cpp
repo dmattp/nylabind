@@ -1,7 +1,7 @@
 /*****************************************************************************
      NylonSqlite.cpp
 *******************************************************************************/
-//#define   LUA_EMBED_SilkySqlite_CPP__
+//#define   LUA_EMBED_NylonSqlite_CPP__
 #if _WINDOWS
 # include "StdAfx.h"
 #endif
@@ -573,7 +573,7 @@ namespace {
          
          if( rc != SQLITE_DONE )
          {
-            std::cout << "Sqlite Exec Failed, rc=" << rc << ": " << sqlite3_errmsg(db_) << std::endl;
+             // std::cout << "Sqlite Exec Failed, rc=" << rc << ": " << sqlite3_errmsg(db_) << std::endl;
             THROW_NOTATED("Sqlite Exec Failed, rc="), rc, ": ", sqlite3_errmsg(db_);
          }
 
