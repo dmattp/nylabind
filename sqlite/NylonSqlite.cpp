@@ -302,13 +302,7 @@ namespace {
          ANNOTATE("SilkySqlite::select_loop_reporter="), statement;
          
          // std::cout << "SilkySqlite::select_loop=" << statement << std::endl;
-         sqlite3_stmt* stmt;
-         int rc = sqlite3_prepare/*_v2*/( db_, statement.c_str(),
-            statement.length(),
-            &stmt, 0 );
-
-         if( rc != SQLITE_OK )
-            THROW_NOTATED("Error prepping stmt, rc="), rc;
+         sqlite3_stmt* stmt = prep_statement( statement, __FUNCTION__ );
 
          if( params )
          {
@@ -324,7 +318,7 @@ namespace {
             delete params;
          }
 
-         rc = sqlite3_step( stmt );
+         int rc = sqlite3_step( stmt );
 
          nlog(extra,db) "sqlite rc=", rc;
 
@@ -399,24 +393,11 @@ namespace {
          
 //         std::cout << "SilkySqlite::select_loop=" << statement << std::endl;
 
-         sqlite3_stmt* stmt;
-         int rc = sqlite3_prepare/*_v2*/( db_, statement.c_str(),
-            statement.length(),
-            &stmt, 0 );
-
-         if( rc != SQLITE_OK )
-         {
-             std::ostringstream os;
-             os << "Error prepping stmt, rc=";
-             os << rc;
-             os << " emsg=";
-             os << sqlite3_errmsg( db_ );
-             THROW_NOTATED(os.str());
-         }
+         sqlite3_stmt* stmt = prep_statement( statement, __FUNCTION__ );
 
          bind_all_params( stmt, params );
 
-         rc = sqlite3_step( stmt );
+         int rc = sqlite3_step( stmt );
 
          nlog(extra,db) "sqlite rc=", rc;
 
@@ -536,6 +517,29 @@ namespace {
 
 //       }
 
+       sqlite3_stmt* prep_statement ( const std::string& statement, const char* from )
+       {
+           sqlite3_stmt* stmt;
+           int rc =
+               sqlite3_prepare
+               (   db_,
+                   statement.c_str(),
+                   statement.length(),
+                   &stmt,
+                   0
+               );
+
+           if( rc != SQLITE_OK )
+           {
+               std::ostringstream os;
+               os << "Error prepping exec stmt from=" << from << " rc=" << rc;
+               os << " emsg=" << sqlite3_errmsg( db_ );
+               os << " statement=" << statement;
+               THROW_NOTATED(os.str());
+           }
+
+           return stmt;
+       }
 
       void
       do_exec
@@ -546,26 +550,13 @@ namespace {
          ANNOTATE("SilkySqlite::exec="), statement;
 //         std::cout << "enter do_exec" << std::endl;
          
+
          //nlog(debug) "SilkySqlite::select_single=", statement;
-
-         sqlite3_stmt* stmt;
-         int rc = sqlite3_prepare/*_v2*/( db_, statement.c_str(),
-            statement.length(),
-            &stmt, 0 );
-
-         if( rc != SQLITE_OK )
-         {
-             std::ostringstream os;
-             os << "Error prepping exec stmt, rc=";
-             os << rc;
-             os << " emsg=";
-             os << sqlite3_errmsg( db_ );
-             THROW_NOTATED(os.str());
-         }
-
+         sqlite3_stmt* stmt = prep_statement( statement, __FUNCTION__ );
+         
          bind_all_params( stmt, params );
 
-         rc = sqlite3_step( stmt );
+         int rc = sqlite3_step( stmt );
 
          nlog(extra) "sqlite rc=", rc;
 
