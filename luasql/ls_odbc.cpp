@@ -561,16 +561,16 @@ class Connection
         {
             /* if there is a results table (e.g., SELECT) */
             reporter.preReport();
-            std::cout << "creating cursor" << std::endl;
+//            std::cout << "creating cursor" << std::endl;
             Cursor* c = new Cursor(L, *this, hstmt, numcols);
             ++conn_.cur_counter;
             
-            std::cout << "created cursor=" << c << std::endl;
+//            std::cout << "created cursor=" << c << std::endl;
             reporter.postReport();
         
-            std::cout << "freeing up" << std::endl;
+//            std::cout << "freeing up" << std::endl;
             reporter.report( c );
-            std::cout << "reported" << std::endl;
+//            std::cout << "reported" << std::endl;
 
             hstmt.release();
         }

@@ -9,6 +9,7 @@
 #include "nylon-runner.h"
 
 #include "objidl.h"
+#include "shlobj.h"
 
 
 #ifdef _WINDOWS
@@ -83,14 +84,20 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     }
 
     UINT CF_HTML;
+    UINT CBID_FILECONTENTS;
 
-    void getclipboard_ext( luabind::object cbfun )
+    void getclipboard_ext( lua_State* L, luabind::object cbfun )
     {
         std::string str;
 
         if( !CF_HTML )
         {
             CF_HTML = RegisterClipboardFormat(L"HTML Format");
+        }
+
+        if( !CBID_FILECONTENTS )
+        {
+            CBID_FILECONTENTS = RegisterClipboardFormat(CFSTR_FILECONTENTS);
         }
         
         if(OpenClipboard(0))
@@ -168,6 +175,45 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
                 delete pBM;
                 GdiplusShutdown(gdiplusToken);
             }
+
+            if (CONTAINS(cbFormats,CF_HDROP))
+            {
+                luabind::object t = luabind::newtable( L );
+
+                const HANDLE hData = GetClipboardData(CF_HDROP);
+
+                if (hData)
+                {
+                    HDROP hDrop = (HDROP)GlobalLock(hData);
+                    if (hDrop)
+                    {
+                        wchar_t lpszFileName[MAX_PATH] = { 0 };
+                        
+                        for (int i = 0; i < 16384; ++i)
+                        {
+                            if (!DragQueryFile(hDrop, i, lpszFileName, MAX_PATH))
+                                break;
+                            static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+                            const std::string wpath = converter.to_bytes( lpszFileName );
+                            t[i+1] = wpath;
+                        }
+                        
+                        GlobalUnlock(hData);
+                    }
+                }
+                
+                cbfun( "CF_HDROP", t );
+            }
+
+
+            if (CONTAINS(cbFormats,CBID_FILECONTENTS))
+            {
+                cbfun( "CFSTR_FILECONTENTS" );
+                luabind::object t = luabind::newtable( L );
+                
+                cbfun( "CFSTR_FILECONTENTS", t );
+            }
+            
             
             CloseClipboard();
         }
