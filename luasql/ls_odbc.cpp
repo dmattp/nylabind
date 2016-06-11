@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <iostream>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -93,7 +94,7 @@ class SqlErrorTosser_
             {
                 std::string m = std::string(msg) + "\n";
                 m += this->fail( type_, handle_ );
-                std::cout << "FAIL:" << m << std::endl;
+                std::cerr << "FAIL:" << m << std::endl;
                 throw DmpSqlError( m );
             }
         }

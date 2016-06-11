@@ -85,6 +85,8 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 
     UINT CF_HTML;
     UINT CBID_FILECONTENTS;
+    UINT CBID_FILEDESCRIPTOR;
+    UINT CBID_FILEGROUPDESCRIPTOR;
 
     void getclipboard_ext( lua_State* L, luabind::object cbfun )
     {
@@ -99,6 +101,16 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
         {
             CBID_FILECONTENTS = RegisterClipboardFormat(CFSTR_FILECONTENTS);
         }
+
+        if( !CBID_FILEDESCRIPTOR )
+        {
+            CBID_FILEDESCRIPTOR = RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR);
+        }
+
+//         if( !CBID_FILEGROUPDESCRIPTOR )
+//         {
+//             CBID_FILEGROUPDESCRIPTOR = RegisterClipboardFormat(CFSTR_FILEGROUPDESCRIPTORW);
+//         }
         
         if(OpenClipboard(0))
         {
@@ -205,19 +217,137 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
                 cbfun( "CF_HDROP", t );
             }
 
-
-            if (CONTAINS(cbFormats,CBID_FILECONTENTS))
+            // see: https://msdn.microsoft.com/en-us/library/windows/desktop/bb776904(v=vs.85).aspx#filecontents
+            if (CONTAINS( cbFormats, CBID_FILEDESCRIPTOR ))
             {
-                cbfun( "CFSTR_FILECONTENTS" );
-                luabind::object t = luabind::newtable( L );
-                
-                cbfun( "CFSTR_FILECONTENTS", t );
+                luabind::object tarray = luabind::newtable( L );
+
+                const HANDLE hData = GetClipboardData( CBID_FILEDESCRIPTOR );
+
+                if (hData)
+                {
+                    const FILEGROUPDESCRIPTOR* const pDescriptor = (const FILEGROUPDESCRIPTOR*)GlobalLock(hData);
+                    
+                    if (pDescriptor)
+                    {
+                        for (int ndx = 0; ndx < pDescriptor->cItems; ++ndx)
+                        {
+                            luabind::object t = luabind::newtable( L );
+
+                            const wchar_t* lpszFileName = pDescriptor->fgd[ndx].cFileName;
+
+                            t["flags"] = pDescriptor->fgd[ndx].dwFlags;
+
+                            if (lpszFileName)
+                            {
+                                static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+                        
+                                t["name"] = converter.to_bytes( lpszFileName );
+                            }
+                        
+                            if (pDescriptor->fgd[ndx].dwFlags & FD_FILESIZE)
+                            {
+                                t["size"] = pDescriptor->fgd[ndx].nFileSizeLow;
+                            }
+
+                            tarray[ndx+1] = t;
+
+                            GlobalUnlock(hData);
+                            
+                            if (CONTAINS( cbFormats, CBID_FILECONTENTS ))
+                            {
+#if 1
+                                CloseClipboard();
+                                
+                                IDataObject* pDataObj = 0;
+                                HRESULT hr = OleGetClipboard(&pDataObj);
+
+                                if ((hr == S_OK) && pDataObj)
+                                {
+                                    t["haveOle"] = (unsigned)pDataObj;
+
+                                    DVTARGETDEVICE dvtd = { 0 };
+                                    FORMATETC fmt = { 0 };
+                                    fmt.cfFormat = CBID_FILECONTENTS;
+                                    fmt.lindex = ndx;
+                                    fmt.tymed = TYMED_ISTREAM; // |TYMED_ISTORAGE|TYMED_HGLOBAL;
+                                    fmt.ptd = &dvtd;
+                                        
+                                    STGMEDIUM medium = { 0 };
+                                    auto rc = pDataObj->GetData ( &fmt, &medium );
+
+                                    if (rc != S_OK)
+                                    {
+                                        switch(rc)
+                                        {
+                                            case DV_E_LINDEX: std::cerr << "DV_E_LINDEX\n"; break;
+                                            case DV_E_FORMATETC: std::cerr << "DV_E_FORMATETC\n"; break;
+                                            case DV_E_TYMED: std::cerr << "DV_E_TYMED\n"; break;
+                                            case E_INVALIDARG: std::cerr << "E_INVALIDARG\n"; break;
+                                        }
+                                        std::cerr << "GetLastError()=" << GetLastError << std::endl;
+                                    }
+
+                                    t["gdrc"] = rc;
+
+                                    switch( medium.tymed )
+                                    {
+                                        case TYMED_HGLOBAL:
+                                            t["tymed"] = "hglobal";
+                                            break;
+                                        case TYMED_ISTREAM:
+                                            t["tymed"] = "istream";
+                                            break;
+                                        case TYMED_ISTORAGE:
+                                            t["tymed"] = "istorage";
+                                            break;
+                                        default:
+                                            t["tymed"] = medium.tymed;
+                                    }
+                                    OleFlushClipboard();
+                                }
+                                else
+                                {
+                                    std::cerr << "could not OleGetClipboard, hr=" << hr << std::endl;
+                                    if (hr == CLIPBRD_E_CANT_OPEN)
+                                        std::cerr << "CLIPBRD_E_CANT_OPEN=" << CLIPBRD_E_CANT_OPEN << std::endl;
+                                    std::cerr << "GetLastError()=" << GetLastError() << std::endl;
+                                }
+                                
+                                OpenClipboard(0);
+                                break;
+
+                                    //const STGMEDIUM* const pMedium = (const STGMEDIUM*)GlobalLock(hData);
+                                    // t["tymed"] = pMedium->tymed;
+                                
+                                // const HANDLE hData = GetClipboardData( CBID_FILECONTENTS );
+
+//                                 if (hData)
+//                                 {
+//                                     // const STGMEDIUM* const pMedium = (const STGMEDIUM*)GlobalLock(hData);
+
+//                                     IStream* pStream;
+//                                     CreateStreamOnHGlobal( hData, false, 
+
+                                    
+                                    
+//                                    STGMEDIUM*
+//                                     IDataObject iobj;
+#endif 
+                            }
+                            
+                        } // end, for each descriptor
+                        
+                        
+                        cbfun( "CFSTR_FILECONTENTS", tarray );
+                    }
+                }
             }
             
             
             CloseClipboard();
         }
-    }
+    } // end, getclipboard_ext
     
 
     void setclipboard( const std::string& text )
