@@ -40,7 +40,7 @@ namespace {
             bool   boolean;
             struct {
                unsigned length;
-               char     val[0];
+               char     val[sizeof(unsigned)]; // might as well have it size of unsigned; MSVC complains about 0.
             } string;
          };
 
@@ -102,10 +102,176 @@ namespace {
             free( old );
          }
       };
-      
+
+      std::vector<Any*>*
+      toCppFromOptBindingParams( const luabind::object& params )
+      {
+         using namespace luabind;
+         if( type(params) == LUA_TTABLE )
+         {
+            nlog(extra) "have params";
+            std::vector<Any*>* vparams( new std::vector<Any*>() );
+            // Lua::TableRef t = params.value();
+//             for( typeof(t.begin_ordinal()) it = t.begin_ordinal();
+//                  it != t.end_ordinal();
+//                  ++it )
+            for( iterator it( params ), end; it != end; ++it )
+            {
+               nlog(extra) "got a param";
+               Any* newAny = Any::New( *it );
+               vparams->push_back( newAny );
+            }
+            return vparams;
+         }
+         else if( type(params) == LUA_TNIL  )
+         {
+            return 0;
+         }
+         else
+         {
+            std::vector<Any*>* vparams( new std::vector<Any*>() );
+            Any* newAny = Any::New( params );
+            vparams->push_back( newAny );
+            return vparams;
+         }
+      }
+
+       void freeParams( std::vector<Any*>* params )
+       {
+          if( params )
+          {
+             for( auto it = params->begin(); it != params->end(); ++it )
+                Any::Delete( *it );
+             delete params;
+          }
+       }
+
+    
+    
    
+    sqlite3_stmt* db_prep_statement ( sqlite3* pDb, const std::string& statement, const char* from )
+       {
+           sqlite3_stmt* stmt;
+           int rc =
+               sqlite3_prepare_v2
+               (   pDb,
+                   statement.c_str(),
+                   statement.length(),
+                   &stmt,
+                   0
+               );
+
+           if( rc != SQLITE_OK )
+           {
+               std::ostringstream os;
+               os << "Error prepping exec stmt from=" << from << " rc=" << rc;
+               os << " emsg=" << sqlite3_errmsg( pDb );
+               os << " statement=" << statement;
+               THROW_NOTATED(os.str());
+           }
+
+           return stmt;
+       }
+
+         
+      void
+      bind_any( sqlite3_stmt* stmt, int pndx, Any* any )
+      {
+         int rc = SQLITE_OK;
+         
+         if( any->luaType == LUA_TNUMBER )
+         {
+            rc = sqlite3_bind_int( stmt, pndx, lrint(any->number) );
+         }
+         else if( any->luaType == LUA_TBOOLEAN )
+         {
+            rc = sqlite3_bind_int( stmt, pndx, any->boolean?1:0 );
+         }
+         else if( any->luaType == LUA_TSTRING )
+         {
+//             std::cout << "bind string, len=" << any->string.length << std::endl;
+             rc = sqlite3_bind_text( stmt, pndx,
+               any->string.val, any->string.length,
+               SQLITE_TRANSIENT );
+         }
+         else
+            THROW_NOTATED("Cant bind param for lua type="), any->luaType;
+
+         if( rc != SQLITE_OK )
+         {
+             std::ostringstream oss;
+             oss << "Error binding stmt=" << (void*)stmt << " param=" << pndx << "; rc=" << rc << " type=" << any->luaType;
+             THROW_NOTATED(oss.str());
+         }
+      }
+    
+       void
+       bind_all_params
+       (   sqlite3_stmt* stmt,
+           std::vector<Any*>* params
+       )
+       {
+           sqlite3_reset(stmt);
+           if( params )
+           {
+               int pndx = 1;
+               for( auto it = params->begin();
+                    it != params->end();
+                    ++it )
+               {
+                   bind_any( stmt, pndx, *it );
+                   ++pndx;
+               }
+           }
+       }
+
+      int
+      do_db_exec
+      (  sqlite3* pDb,
+          sqlite3_stmt* stmt,
+         std::vector<Any*>* params
+      )
+      {
+         bind_all_params( stmt, params );
+
+         int rc = sqlite3_step( stmt );
+
+         nlog(extra) "sqlite exec rc=", rc;
+
+         return rc;
+      }
+    
+      void
+      do_db_exec
+      (  sqlite3* pDb,
+          const std::string& statement,
+         std::vector<Any*>* params
+      )
+      {
+//         std::cout << "enter do_exec" << std::endl;
+         
+
+         //nlog(debug) "SilkySqlite::select_single=", statement;
+          sqlite3_stmt* stmt = db_prep_statement( pDb, statement, __FUNCTION__ );
+
+          int rc = do_db_exec( pDb, stmt, params );
+
+         sqlite3_finalize( stmt );
+         
+         if( rc != SQLITE_DONE )
+         {
+             // std::cout << "Sqlite Exec Failed, rc=" << rc << ": " << sqlite3_errmsg(db_) << std::endl;
+            THROW_NOTATED("Sqlite Exec Failed, rc="), rc, ": ", sqlite3_errmsg(pDb);
+         }
+
+//         std::cout << "SilkySqlite::exec FINISHED okay, statement=" << statement << std::endl;
+       }
+    
+
+    class PreparedStatement;
    class SilkySqlite
    {
+       friend class PreparedStatement;
       sqlite3* db_;
       std::function<void()> itemReady_;
       char** curColumns_;
@@ -265,32 +431,6 @@ namespace {
       }
 #endif 
 
-      void
-      bind_any( sqlite3_stmt* stmt, int pndx, Any* any )
-      {
-         int rc = SQLITE_OK;
-         
-         if( any->luaType == LUA_TNUMBER )
-         {
-            rc = sqlite3_bind_int( stmt, pndx, lrint(any->number) );
-         }
-         else if( any->luaType == LUA_TBOOLEAN )
-         {
-            rc = sqlite3_bind_int( stmt, pndx, any->boolean?1:0 );
-         }
-         else if( any->luaType == LUA_TSTRING )
-         {
-//             std::cout << "bind string, len=" << any->string.length << std::endl;
-             rc = sqlite3_bind_text( stmt, pndx,
-               any->string.val, any->string.length,
-               SQLITE_TRANSIENT );
-         }
-         else
-            THROW_NOTATED("Cant bind param for lua type="), any->luaType;
-
-         if( rc != SQLITE_OK )
-            THROW_NOTATED("Error binding param="), pndx, "; rc=", rc;
-      }
 
       void
       select_loop_reporter
@@ -361,25 +501,6 @@ namespace {
 
        typedef std::pair<std::string,std::string> column_t;
        typedef std::vector< column_t > row_t;
-
-       void
-       bind_all_params
-       (   sqlite3_stmt* stmt,
-           std::vector<Any*>* params
-       )
-       {
-           if( params )
-           {
-               int pndx = 1;
-               for( auto it = params->begin();
-                    it != params->end();
-                    ++it )
-               {
-                   bind_any( stmt, pndx, *it );
-                   ++pndx;
-               }
-           }
-       }
 
       void
       select_loop
@@ -519,28 +640,10 @@ namespace {
 
        sqlite3_stmt* prep_statement ( const std::string& statement, const char* from )
        {
-           sqlite3_stmt* stmt;
-           int rc =
-               sqlite3_prepare
-               (   db_,
-                   statement.c_str(),
-                   statement.length(),
-                   &stmt,
-                   0
-               );
-
-           if( rc != SQLITE_OK )
-           {
-               std::ostringstream os;
-               os << "Error prepping exec stmt from=" << from << " rc=" << rc;
-               os << " emsg=" << sqlite3_errmsg( db_ );
-               os << " statement=" << statement;
-               THROW_NOTATED(os.str());
-           }
-
-           return stmt;
+           return db_prep_statement( db_, statement, from );
        }
-
+       
+       
       void
       do_exec
       (  const std::string& statement,
@@ -548,27 +651,7 @@ namespace {
       )
       {
          ANNOTATE("SilkySqlite::exec="), statement;
-//         std::cout << "enter do_exec" << std::endl;
-         
-
-         //nlog(debug) "SilkySqlite::select_single=", statement;
-         sqlite3_stmt* stmt = prep_statement( statement, __FUNCTION__ );
-         
-         bind_all_params( stmt, params );
-
-         int rc = sqlite3_step( stmt );
-
-         nlog(extra) "sqlite rc=", rc;
-
-         sqlite3_finalize( stmt );
-         
-         if( rc != SQLITE_DONE )
-         {
-             // std::cout << "Sqlite Exec Failed, rc=" << rc << ": " << sqlite3_errmsg(db_) << std::endl;
-            THROW_NOTATED("Sqlite Exec Failed, rc="), rc, ": ", sqlite3_errmsg(db_);
-         }
-
-//         std::cout << "SilkySqlite::exec FINISHED okay, statement=" << statement << std::endl;
+         do_db_exec( db_, statement, params );
       }
       
       
@@ -600,38 +683,6 @@ namespace {
       }
 #endif 
 
-      std::vector<Any*>*
-      toCppFromOptBindingParams( const luabind::object& params )
-      {
-         using namespace luabind;
-         if( type(params) == LUA_TTABLE )
-         {
-            nlog(extra) "have params";
-            std::vector<Any*>* vparams( new std::vector<Any*>() );
-            // Lua::TableRef t = params.value();
-//             for( typeof(t.begin_ordinal()) it = t.begin_ordinal();
-//                  it != t.end_ordinal();
-//                  ++it )
-            for( iterator it( params ), end; it != end; ++it )
-            {
-               nlog(extra) "got a param";
-               Any* newAny = Any::New( *it );
-               vparams->push_back( newAny );
-            }
-            return vparams;
-         }
-         else if( type(params) == LUA_TNIL  )
-         {
-            return 0;
-         }
-         else
-         {
-            std::vector<Any*>* vparams( new std::vector<Any*>() );
-            Any* newAny = Any::New( params );
-            vparams->push_back( newAny );
-            return vparams;
-         }
-      }
 
 
 #if 0
@@ -688,16 +739,6 @@ namespace {
 
           (*cbfun)( rowTable );
       }
-
-       void freeParams( std::vector<Any*>* params )
-       {
-          if( params )
-          {
-             for( auto it = params->begin(); it != params->end(); ++it )
-                Any::Delete( *it );
-             delete params;
-          }
-       }
 
 #if 0       
       StdFunctionCaller
@@ -776,6 +817,34 @@ namespace {
       
    };  // end class NylonSqlite
 
+    class PreparedStatement
+    {
+        sqlite3* db_;
+        sqlite3_stmt* stmt_;
+    public:
+        PreparedStatement( SilkySqlite& silkydb, const std::string& stmt )
+        : db_( silkydb.db_ ),
+          stmt_( db_prep_statement( db_, stmt, __FUNCTION__ ) )
+        {
+        }
+        
+       void
+       exec( const luabind::object& params )
+       {
+#if 1
+          auto copied = toCppFromOptBindingParams(params);
+          try {
+              do_db_exec( db_, stmt_, copied );
+          } catch( ... ) {
+              freeParams( copied );
+              throw;
+          }
+          freeParams( copied );
+#endif 
+       }
+    };
+    
+
    
 //    AUTOLOAD_LUA_REGISTER_CLASS( SilkySqlite,
 //       (selectMany)
@@ -814,7 +883,11 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
       //////////////////////////////////////////////////////////////////
       .def( "selectMany", &SilkySqlite::selectMany )
       .def( "selectOne", &SilkySqlite::selectOne )
-      .def( "exec", &SilkySqlite::exec )
+      .def( "exec", &SilkySqlite::exec ),
+
+      class_<PreparedStatement>("SqlitePreparedStatement")
+      .def( constructor<SilkySqlite&, const std::string&>() )
+      .def( "exec", &PreparedStatement::exec )
    ];
 
 //   std::cout << "done opening NylonSqlite" << std::endl;
