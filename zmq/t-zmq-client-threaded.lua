@@ -25,15 +25,18 @@ local function tfunc(cord)
 
    print "(1) Connected to server, sending hello..."
 
-   cord:cthreaded( s:ctsend 'Hello' )
+   for i = 1, 99999 do
 
-   print "(2) sent hello..."
+     cord:cthreaded( s:ctsend 'Hello' )
+  
+     print "(2) sent hello..."
+  
+     local resp = cord:cthreaded( s:ctrecv() )
+  
+     print( "(3) got response=", resp )
+   end
 
-   local resp = cord:cthreaded( s:ctrecv() )
-
-   print( "(3) got response=", resp )
-
-   cord:sleep(1)
+   -- cord:sleep(1)
 
    print( "(4) exiting", resp )
 
