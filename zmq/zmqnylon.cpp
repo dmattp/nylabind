@@ -50,6 +50,11 @@ public:
     {
     }
 
+    void setsocketopt_( int option, const std::string& value )
+    {
+        this->setsockopt( option, value.c_str(), value.length() );
+    }
+
     void connect_( const std::string& addr )
     {
         socket_t::connect(addr);
@@ -160,6 +165,7 @@ extern "C" DLLEXPORT  int luaopen_zmqnylon( lua_State* L )
        class_<Socket>("Socket")
        .def( constructor<zmq::context_t*, int>() )
        .def( "connect", &Socket::connect_ )
+       .def( "setsocketopt", &Socket::setsocketopt_ )
        .def( "send", &Socket::send_ )
        .def( "sendnowait", &Socket::sendnowait_ )
        .def( "ctsend", &Socket::ctsend_ )
@@ -182,6 +188,7 @@ extern "C" DLLEXPORT  int luaopen_zmqnylon( lua_State* L )
            value("push", ZMQ_PUSH),
            value("xpub", ZMQ_XPUB),
            value("xsub", ZMQ_XSUB),
+           value("subscribe", ZMQ_SUBSCRIBE),
            value("stream", ZMQ_STREAM)
        ]
     ];
