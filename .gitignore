@@ -1,3 +1,4 @@
+build/
 *~
 *.obj
 *.o
@@ -25,4 +26,4 @@ ipch
 *.sdf
 \#*#
 .#*
-
+build
