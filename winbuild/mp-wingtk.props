@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+   <PropertyGroup Label="Globals" Condition="'$(Platform)'=='Win32'">
+     <GTK_ROOT>c:/gtk3</GTK_ROOT>
+     <PYGI_ROOT>c:/usr/share/pygi</PYGI_ROOT>
+   </PropertyGroup>
+
+   <ItemDefinitionGroup>
+     <ClCompile>
+       <AdditionalIncludeDirectories>
+         $(PYGI_ROOT)/include/glib-2.0;
+         $(PYGI_ROOT)/include/gobject-introspection-1.0;
+         $(PYGI_ROOT)/lib/glib-2.0/include;
+         %(AdditionalIncludeDirectories)
+       </AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+       <AdditionalDependencies>
+         $(PYGI_ROOT)/lib/libgirepository-1.0.lib;
+         $(PYGI_ROOT)/lib/libgobject-2.0.dll.a;
+         $(PYGI_ROOT)/lib/libglib-2.0.dll.a;
+         $(PYGI_ROOT)/lib/libgmodule-2.0.dll.a;
+         $(PYGI_ROOT)/lib/libffi.dll.a;
+         %(AdditionalDependencies)
+       </AdditionalDependencies>
+     </Link>
+   </ItemDefinitionGroup>
+</Project>
+

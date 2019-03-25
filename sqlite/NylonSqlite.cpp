@@ -16,9 +16,11 @@
 #include <sstream>
 
 #include <stdio.h>
+
 #ifdef _WINDOWS
 #define lrint(x) static_cast<int>(x) // (floor(x+(x>0) ? 0.5 : -0.5))
 #else
+# include <math.h>
 # include <sys/errno.h>
 #endif
 
@@ -893,7 +895,13 @@ namespace {
 #define DLLEXPORT __declspec(dllexport)
 #else
 #define DLLEXPORT
-#endif 
+#endif
+
+// extern "C" void* luabind_deboostified_allocator( void* context, void const* ptr, size_t sz )
+// {
+//     return realloc(const_cast<void*>(ptr), sz);
+// }
+
 
 extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
 {
@@ -901,9 +909,11 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
 
 //   std::cout << "open NylonSqlite" << std::endl;
 
-   // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
 
 //   std::cout << "NylonSqlite open.01a" << std::endl;
+//   luabind::allocator = luabind_deboostified_allocator;
+//   luabind::open( L );
 
    module( L ) [
       class_<SilkySqlite>("NylonSqlite")

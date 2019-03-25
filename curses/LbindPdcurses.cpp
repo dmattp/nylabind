@@ -207,7 +207,13 @@ namespace {
 #define DLLEXPORT __declspec(dllexport)
 #else
 #define DLLEXPORT
-#endif 
+#endif
+
+// extern "C" void* luabind_deboostified_allocator( void* context, void const* ptr, size_t sz )
+// {
+//     return realloc(const_cast<void*>(ptr), sz);
+// }
+
 
 extern "C" DLLEXPORT  int luaopen_LbindPdcurses( lua_State* L )
 {
@@ -215,7 +221,11 @@ extern "C" DLLEXPORT  int luaopen_LbindPdcurses( lua_State* L )
 
    // std::cout << "Nylon open Pdcurses" << std::endl;
 
-   // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+   //luabind::allocator = luabind_deboostified_allocator;
+   
+//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the
+                       // main prog inits luabind.
+   
    // also, dont do this after somebody else has done it, at least with newer versions of luabind; it replaces the
    // table of all registered classes.
 
