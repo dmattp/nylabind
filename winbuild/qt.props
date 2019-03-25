@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+   <PropertyGroup Label="Globals" Condition="'$(Platform)'=='Win32'">
+     <QT_DEVDIR>c:/qt/4.8.5</QT_DEVDIR>
+   </PropertyGroup>
+
+   <!-- define suffix for lib files to distinguish debug/release builds -->
+   <PropertyGroup Label="Globals" Condition="'$(Configuration)'=='Debug'">
+     <MPLIB_POSTX>d</MPLIB_POSTX>
+   </PropertyGroup>
+   <PropertyGroup Label="Globals" Condition="'$(Configuration)'=='Release'">
+     <MPLIB_POSTX></MPLIB_POSTX>
+   </PropertyGroup>
+
+   <ItemDefinitionGroup>
+     <ClCompile>
+       <AdditionalIncludeDirectories>$(QT_DEVDIR)/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+     </ClCompile>
+     <Link>
+        <AdditionalLibraryDirectories>$(QT_DEVDIR)/Lib</AdditionalLibraryDirectories>
+        <AdditionalDependencies>QtOpenGL4.lib;QtCore4.lib;QtGui4.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+     </Link>
+   </ItemDefinitionGroup>
+</Project>
+
