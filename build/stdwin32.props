@@ -2,7 +2,8 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup Label="Globals" Condition="'$(Platform)'=='Win32'">
-   </PropertyGroup>
+    <PlatformToolset>v141_xp</PlatformToolset>
+  </PropertyGroup>
 
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
@@ -12,12 +13,12 @@
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);c:/Dev/PCS_SDKS/JAG/NewDev/PlatformSystemsSDK/Include/;C:\Dev\PCS_SDKS\JAG\NewDev\Include;C:\Dev\PCS_SDKS\JAG\NewDev\Common\ForecourtInterface</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SuppressStartupBanner>false</SuppressStartupBanner>
-      <AdditionalDependencies>kernel32.lib;ws2_32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
 

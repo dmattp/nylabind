@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Import Project="../build/luabind.props" />
-
    <PropertyGroup Label="Globals" Condition="'$(Platform)'=='Win32'">
-     <NYLON_ROOT>c:/m/nylon</NYLON_ROOT>
+     <NYLON_ROOT>c:/m/n7/nylon</NYLON_ROOT>
    </PropertyGroup>
 
    <ItemDefinitionGroup>
@@ -12,7 +10,7 @@
        <AdditionalIncludeDirectories>$(NYLON_ROOT)/src;$(NYLON_ROOT)/src/win;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
      </ClCompile>
      <Link>
-        <AdditionalDependencies>$(NYLON_ROOT)/build/src/$(Configuration)/syscore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+        <AdditionalDependencies>$(NYLON_ROOT)/build/nylon/src/nylon-build/$(Configuration)/syscore.lib;%(AdditionalDependencies)</AdditionalDependencies>
      </Link>
    </ItemDefinitionGroup>
 </Project>

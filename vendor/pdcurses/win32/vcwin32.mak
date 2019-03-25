@@ -7,6 +7,8 @@
 
 O = obj
 
+DEFINES = -D_USING_V141XP_SDK71_
+
 !ifndef PDCURSES_SRCDIR
 PDCURSES_SRCDIR = ..
 !endif
@@ -49,7 +51,7 @@ LINK		= link.exe -nologo
 
 CCLIBS		= user32.lib advapi32.lib
 # may need to add msvcrt.lib for VC 2.x, VC 5.0 doesn't want it
-#CCLIBS		= msvcrt.lib user32.lib advapi32.lib
+#CCLIBS		= user32.lib advapi32.lib
 
 LIBEXE		= lib -nologo
 

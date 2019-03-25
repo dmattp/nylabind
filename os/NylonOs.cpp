@@ -230,7 +230,7 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
                     
                     if (pDescriptor)
                     {
-                        for (int ndx = 0; ndx < pDescriptor->cItems; ++ndx)
+                        for (unsigned ndx = 0; ndx < pDescriptor->cItems; ++ndx)
                         {
                             luabind::object t = luabind::newtable( L );
 
@@ -359,7 +359,7 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
             EmptyClipboard();
             clipbuffer = GlobalAlloc(GMEM_DDESHARE, text.length()+1);
             buffer = (char*)GlobalLock(clipbuffer);
-            strcpy(buffer, text.c_str()); // LPCSTR(source));
+            strcpy_s(buffer, text.length()+1, text.c_str() ); // LPCSTR(source));
             GlobalUnlock(clipbuffer);
             SetClipboardData(CF_TEXT,clipbuffer);
             CloseClipboard();
