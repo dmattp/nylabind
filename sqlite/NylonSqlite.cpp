@@ -809,7 +809,7 @@ namespace {
        
        
         void
-        exec( const std::string& statement, const luabind::object& params )
+        exec( std::string statement, luabind::object params )
         {
             auto copied = toCppFromOptBindingParams(params);
             try {
@@ -819,6 +819,16 @@ namespace {
                 freeParams( copied );
                 throw;
             }
+        }
+
+        void testInt( int foo )
+        {
+            std::cout << "testInt foo=" << foo << std::endl;
+        }
+        
+        void testVoid()
+        {
+            std::cout << "testVoid() called" << std::endl;
         }
     };  // end class NylonSqlite
 
@@ -916,6 +926,8 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
       //////////////////////////////////////////////////////////////////
       .def( "selectMany", &SilkySqlite::selectMany )
       .def( "selectOne", &SilkySqlite::selectOne )
+      .def( "testInt", &SilkySqlite::testInt )
+      .def( "testVoid", &SilkySqlite::testVoid )
       .def( "exec", &SilkySqlite::exec ),
 
       class_<PreparedStatement>("SqlitePreparedStatement")

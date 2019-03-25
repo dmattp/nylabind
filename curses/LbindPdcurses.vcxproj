@@ -41,17 +41,16 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)$(Configuration)\;c:\usr\lib;c:\qt\4.8.5\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)$(Configuration)\;c:\usr\lib;c:\qt\4.8.5\lib</LibraryPath>
   </PropertyGroup>
 
 
-  <Import Project="../build/nylonsyscore.props" />
+  <Import Project="../build/nylon-luabind.props" />
   <Import Project="../build/stdwin32.props" />
 
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
