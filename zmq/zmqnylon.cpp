@@ -77,6 +77,11 @@ public:
         this->sendflags_( msg, ZMQ_DONTWAIT );
     }
     
+    void sendmore_( const std::string& msg )
+    {
+        this->sendflags_( msg, ZMQ_SNDMORE );
+    }
+    
 
     void bind_( const std::string& msg )
     {
@@ -168,6 +173,7 @@ extern "C" DLLEXPORT  int luaopen_zmqnylon( lua_State* L )
        .def( "setsocketopt", &Socket::setsocketopt_ )
        .def( "send", &Socket::send_ )
        .def( "sendnowait", &Socket::sendnowait_ )
+       .def( "sendmore", &Socket::sendmore_ )
        .def( "ctsend", &Socket::ctsend_ )
        .def( "ctsendnowait", &Socket::ctsendnowait_ )
        .def( "recv", &Socket::getreply_ )

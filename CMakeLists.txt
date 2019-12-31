@@ -8,5 +8,6 @@ include_directories(/usr/local/include/nylon)
 
 add_subdirectory(curses)
 add_subdirectory(sqlite)
+add_subdirectory(zmq)
 
 
