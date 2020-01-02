@@ -494,7 +494,7 @@ extern "C" DLLEXPORT  int luaopen_NylonOs( lua_State* L )
 {
    using namespace luabind;
 
-   // std::cout << "opening NylonOs" << std::endl;
+   std::cout << "opening NylonOs, L=" << (void*)L << std::endl;
 
    // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
    // also, dont do this after somebody else has done it, at least with newer versions of luabind; it replaces the

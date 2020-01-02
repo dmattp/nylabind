@@ -219,11 +219,11 @@ extern "C" DLLEXPORT  int luaopen_LbindPdcurses( lua_State* L )
 {
    using namespace luabind;
 
-   // std::cout << "Nylon open Pdcurses" << std::endl;
+   std::cout << "Nylon open Pdcurses, lua=" << (void*)L << std::endl;
 
    //luabind::allocator = luabind_deboostified_allocator;
    
-//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the
+   //luabind::open( L ); // wow, don't do this from a coroutine.  make sure the
                        // main prog inits luabind.
    
    // also, dont do this after somebody else has done it, at least with newer versions of luabind; it replaces the

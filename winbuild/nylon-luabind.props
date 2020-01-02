@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-   <Import Project="../build/lua53.props" />
+   <Import Project="../winbuild/lua53.props" />
   
    <PropertyGroup Label="Globals" Condition="'$(Platform)'=='Win32'">
      <NYLON_ROOT>c:/m/n7/nylon</NYLON_ROOT>

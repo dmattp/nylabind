@@ -50,8 +50,8 @@
   </PropertyGroup>
 
 
-  <Import Project="../build/nylon-luabind.props" />
-  <Import Project="../build/stdwin32.props" />
+  <Import Project="../winbuild/nylon-luabind.props" />
+  <Import Project="../winbuild/stdwin32.props" />
 
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>

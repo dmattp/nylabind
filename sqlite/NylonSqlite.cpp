@@ -672,7 +672,7 @@ namespace {
             sqlite3_close( db_ );
         }
 
-        int
+        int64_t
         lastRowId()
         {
             return sqlite3_last_insert_rowid( db_ );
@@ -917,13 +917,14 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
 {
    using namespace luabind;
 
-//   std::cout << "open NylonSqlite" << std::endl;
+//   std::cout << "open NylonSqlite" << std::endmail;
 
-//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
 
+   std::cout << "Open nylonsqlite, state=" << L << std::endl; 
+   
 //   std::cout << "NylonSqlite open.01a" << std::endl;
 //   luabind::allocator = luabind_deboostified_allocator;
-//   luabind::open( L );
 
    module( L ) [
       class_<SilkySqlite>("NylonSqlite")
