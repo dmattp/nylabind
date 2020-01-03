@@ -919,7 +919,7 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
 
 //   std::cout << "open NylonSqlite" << std::endmail;
 
-   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
 
    std::cout << "Open nylonsqlite, state=" << L << std::endl; 
    

@@ -14,11 +14,11 @@
    <ItemDefinitionGroup>
      <ClCompile>
        <AdditionalIncludeDirectories>$(NYLON_ROOT)/src;$(NYLON_ROOT)/src/win;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-       <AdditionalIncludeDirectories>$(NYLON_ROOT)/build/ExtProjects/Install/luabind/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalIncludeDirectories>$(NYLON_ROOT)/luabind-deboostified;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
      </ClCompile>
      <Link>
         <AdditionalDependencies>$(NYLON_ROOT)/build/nylon/src/nylon-build/$(Configuration)/syscore.lib;%(AdditionalDependencies)</AdditionalDependencies>
-        <AdditionalDependencies>$(NYLON_ROOT)/build/luabind/src/luabind-build/src/$(Configuration)/luabind$(LUABIND_POSTX).lib;%(AdditionalDependencies)</AdditionalDependencies>
+        <AdditionalDependencies>$(NYLON_ROOT)/build/luabind/src/luabind-build/lib/$(Configuration)/luabind$(LUABIND_POSTX).lib;%(AdditionalDependencies)</AdditionalDependencies>
      </Link>
    </ItemDefinitionGroup>
 </Project>

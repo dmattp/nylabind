@@ -42,12 +42,28 @@ namespace {
 
 using namespace zmq;
 
+// static zmq::context_t gl_zmqctx(1);
+
 class Socket : public socket_t
 {
 public:
-    Socket( context_t* pContext, int theType )
+    Socket(
+        context_t* pContext,
+        int theType )
     : socket_t( *pContext, theType )
     {
+#if 0 // _WINDOWS
+        // zmq complains if startup not called? it's weird
+   WSADATA data;
+   WSAStartup(MAKEWORD(2,2), &data);
+#endif        
+    }
+
+    ~Socket()
+    {
+#if 0 // _WINDOWS
+        WSACleanup();
+#endif        
     }
 
     void setsocketopt_( int option, const std::string& value )
@@ -153,9 +169,10 @@ extern "C" DLLEXPORT  int luaopen_zmqnylon( lua_State* L )
 {
    using namespace luabind;
 
+
    // std::cout << "Nylon open Pdcurses" << std::endl;
 
-   // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+//   luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
    // also, dont do this after somebody else has done it, at least with newer versions of luabind; it replaces the
    // table of all registered classes.
 
@@ -168,6 +185,7 @@ extern "C" DLLEXPORT  int luaopen_zmqnylon( lua_State* L )
        .def( constructor<int>() ),
        
        class_<Socket>("Socket")
+//       .def( constructor<int>() )
        .def( constructor<zmq::context_t*, int>() )
        .def( "connect", &Socket::connect_ )
        .def( "setsocketopt", &Socket::setsocketopt_ )
