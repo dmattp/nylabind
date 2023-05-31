@@ -5,7 +5,6 @@
 # include "objidl.h"
 # include "shlobj.h"
 # include <codecvt>
-# include "evid.h"
 #else
 # include <locale>
 #endif
@@ -13,6 +12,7 @@
 #include <iostream>
 #include <luabind/luabind.hpp>
 #include "nylon-runner.h"
+#include "evid.h"
 
 
 
@@ -521,9 +521,9 @@ extern "C" DLLEXPORT  int luaopen_NylonOs( lua_State* L )
        ,def( "addCreateGlobalPrivilege", &addCreateGlobalPrivilege )
        ,def( "GetFileTime", &GetFileTime_ )
        ,def( "CryptoRandom", &CryptoRandom_ )
+#endif 
        ,def( "NewEvid", &NewEvid )
        ,def( "EvidTime", &EvidTime )
-#endif 
    ];
    
    //std::cout << "NylonOs opened" << std::endl;

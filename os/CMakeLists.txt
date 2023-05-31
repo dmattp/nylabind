@@ -3,12 +3,8 @@ project(NylonOs)
 
 # set(OS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/os-amalgamation-3400100)
 
-if (WIN32)
-  set(EVID_CPP evid.cpp)
-endif()
-
 add_library (NylonOs SHARED
-  ${EVID_CPP}
+  evid.cpp
   NylonOs.cpp)
 
 set_target_properties(NylonOs PROPERTIES

@@ -54,15 +54,24 @@
 // 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#if _WINDOWS
+# include <windows.h>
+# include <sysinfoapi.h>
+# include <processthreadsapi.h>
+# include <psapi.h> 
+# include <wincrypt.h> 
+# include "JagIso8601DateTime.h"
+#else
+# include <unistd.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
+#endif 
+
 #include <cstdint>
 #include <cstdlib>
 #include <string>
-#include <windows.h>
-#include <sysinfoapi.h>
 #include <mutex>
-#include <processthreadsapi.h>
-#include <psapi.h> 
-#include <wincrypt.h> 
 
 #include "evid.h"
 
@@ -76,6 +85,7 @@ namespace {
     std::recursive_mutex gEvidSequenceMutex;
 
 
+#if LCFG_PERSISTENT_NODE_IDS    
     std::wstring GetProcessName()
     {
         HANDLE handle = GetCurrentProcess();
@@ -91,6 +101,7 @@ namespace {
             return L"???UnknownProcess???";
         }
     }
+#endif 
 
     
 
@@ -186,7 +197,8 @@ namespace {
     NewEvid(const char* node_id)
     {
         std::string out;
-        
+
+#if _WINDOWS        
         FILETIME ft_now;
         GetSystemTimeAsFileTime(&ft_now);
         
@@ -197,6 +209,9 @@ namespace {
         
         // value is 100ns increments, so / 10,000 = milliseconds
         int64_t deciseconds_epoch = epoch / 1000000;
+#else
+        int64_t deciseconds_epoch = time(NULL) * 10; // wanky, but whatever  //~~~@todo: fixme please
+#endif 
 
         encodeInt(deciseconds_epoch, 36, out);
 
@@ -254,7 +269,7 @@ namespace {
     GenerateNodeId()
     {
         static char node_id[17] = {0};
-
+#if _WINDOWS        
         HCRYPTPROV crypto = 0;
 
         auto rc = CryptAcquireContext(
@@ -266,6 +281,11 @@ namespace {
         node_id[16] = 0;
 
         CryptReleaseContext(crypto, 0);
+#else
+        int fd = open("/dev/random", O_RDONLY);
+        read(fd, node_id, 16);
+        close(fd);
+#endif 
 
         // easy peasy; generate random bytes and convert to valid BASE64 characters
         for (size_t i = 0; i < 16; ++i)
@@ -312,7 +332,6 @@ namespace {
 } // end, anonymous namespace
 
 
-#include "JagIso8601DateTime.h"
 
 std::string EvidTime(const std::string& evid)
 {
@@ -324,6 +343,7 @@ std::string EvidTime(const std::string& evid)
 
     int64_t ns100_epoch = ns100_evid + 116444736000000000LL;
 
+#if _WINDOWS    
     FILETIME ft_evid;
     ft_evid.dwLowDateTime  = ns100_epoch & 0xFFFFFFFF;
     ft_evid.dwHighDateTime = ns100_epoch >> 32LL;
@@ -332,7 +352,11 @@ std::string EvidTime(const std::string& evid)
     FileTimeToSystemTime(&ft_evid, &systime_evid);
 
     jag::datetime::DateTimeOffset datetime_evid(systime_evid);
+    
     return datetime_evid.ToIso8601DateTimeString();
+#else    
+    return "2099-01-01T00:00:00.0";  //~~~@todo: fixme
+#endif
 }
 
 
