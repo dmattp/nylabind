@@ -215,7 +215,7 @@ extern "C" DLLEXPORT  int luaopen_LbindPdcurses( lua_State* L )
 
    // std::cout << "Nylon open Pdcurses" << std::endl;
 
-   // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+   //open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
    // also, dont do this after somebody else has done it, at least with newer versions of luabind; it replaces the
    // table of all registered classes.
 

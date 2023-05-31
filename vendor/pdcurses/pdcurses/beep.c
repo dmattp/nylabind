@@ -1,37 +1,43 @@
-/* Public Domain Curses */
+/* PDCurses */
 
 #include <curspriv.h>
 
-RCSID("$Id: beep.c,v 1.34 2008/07/13 16:08:17 wmcbrine Exp $")
-
 /*man-start**************************************************************
 
-  Name:                                                         beep
+beep
+----
 
-  Synopsis:
-        int beep(void);
-        int flash(void);
+### Synopsis
 
-  Description:
-        beep() sounds the audible bell on the terminal, if possible;
-        if not, it calls flash().
+    int beep(void);
+    int flash(void);
 
-        flash() "flashes" the screen, by inverting the foreground and
-        background of every cell, pausing, and then restoring the
-        original attributes.
+### Description
 
-  Return Value:
-        These functions return OK.
+   beep() sounds the audible bell on the terminal, if possible; if not,
+   it calls flash().
 
-  Portability                                X/Open    BSD    SYS V
-        beep                                    Y       Y       Y
-        flash                                   Y       Y       Y
+   flash() "flashes" the screen, by inverting the foreground and
+   background of every cell, pausing, and then restoring the original
+   attributes.
+
+### Return Value
+
+   These functions return ERR if called before initscr(), otherwise OK.
+
+### Portability
+                             X/Open  ncurses  NetBSD
+    beep                        Y       Y       Y
+    flash                       Y       Y       Y
 
 **man-end****************************************************************/
 
 int beep(void)
 {
     PDC_LOG(("beep() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     if (SP->audible)
         PDC_beep();
@@ -46,6 +52,9 @@ int flash(void)
     int z, y, x;
 
     PDC_LOG(("flash() - called\n"));
+
+    if (!curscr)
+        return ERR;
 
     /* Reverse each cell; wait; restore the screen */
 

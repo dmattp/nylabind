@@ -1,8 +1,6 @@
-/* Public Domain Curses */
+/* PDCurses */
 
 #include "pdcsdl.h"
-
-RCSID("$Id: pdcutil.c,v 1.6 2008/07/14 04:24:52 wmcbrine Exp $")
 
 void PDC_beep(void)
 {
@@ -14,6 +12,13 @@ void PDC_napms(int ms)
     PDC_LOG(("PDC_napms() - called: ms=%d\n", ms));
 
     PDC_update_rects();
+    while (ms > 50)
+    {
+        SDL_PumpEvents();
+        SDL_Delay(50);
+        ms -= 50;
+    }
+    SDL_PumpEvents();
     SDL_Delay(ms);
 }
 

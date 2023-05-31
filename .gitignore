@@ -25,4 +25,6 @@ ipch
 *.sdf
 \#*#
 .#*
+build
+build-win
 

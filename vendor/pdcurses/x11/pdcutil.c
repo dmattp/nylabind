@@ -1,8 +1,6 @@
-/* Public Domain Curses */
+/* PDCurses */
 
 #include "pdcx11.h"
-
-RCSID("$Id: pdcutil.c,v 1.10 2008/07/14 04:24:52 wmcbrine Exp $")
 
 #if defined(HAVE_POLL) && !defined(HAVE_USLEEP)
 # include <poll.h>
@@ -12,12 +10,14 @@ void PDC_beep(void)
 {
     PDC_LOG(("PDC_beep() - called\n"));
 
-    XCursesInstruct(CURSES_BELL);
+    XBell(XtDisplay(pdc_toplevel), 50);
 }
 
 void PDC_napms(int ms)
 {
     PDC_LOG(("PDC_napms() - called: ms=%d\n", ms));
+
+    XSync(XtDisplay(pdc_toplevel), False);
 
 #if defined(HAVE_USLEEP)
 

@@ -1,4 +1,4 @@
-# Makefile for PDCurses library for X11
+# Makefile for PDCurses for X11
 
 SHELL		= @SHELL@
 THIS		= Makefile
@@ -11,7 +11,13 @@ osdir		= .
 srcdir		= $(PDCURSES_SRCDIR)/pdcurses
 demodir		= $(PDCURSES_SRCDIR)/demos
 
-PDCURSES_CONFIG_H	=$(PDCURSES_SRCDIR)/config.h
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+libdir		= @libdir@
+bindir		= @bindir@
+includedir	= @includedir@
+
+PDCURSES_CONFIG_H	=$(osdir)/config.h
 PDCURSES_CURSES_H	=$(PDCURSES_SRCDIR)/curses.h
 PDCURSES_CURSPRIV_H	=$(PDCURSES_SRCDIR)/curspriv.h
 PDCURSES_HEADERS	=$(PDCURSES_CONFIG_H) $(PDCURSES_CURSES_H) \
@@ -30,10 +36,10 @@ CPPFLAGS	= @DEFS@ -DXCURSES @SYS_DEFS@ -I$(PDCURSES_SRCDIR)
 BUILD		= @CC@ -c $(CFLAGS) $(CPPFLAGS) @MH_XINC_DIR@
 DYN_BUILD	= @O2SAVE@ $(BUILD) @DYN_COMP@ @CC2O@
 
-LINK		= @PURIFY@ @CC@
-#LDFLAGS	= $(LIB_DEPS) @LDFLAGS@ @LIBS@ @MH_XLIBS@ @MH_EXTRA_LIBS@
+LINK		= @CC@
 LDFLAGS		= $(LIBCURSES) @LDFLAGS@ @LIBS@ @MH_XLIBS@ @MH_EXTRA_LIBS@
 
+INSTALL		= $(osdir)/install-sh
 RANLIB		= @RANLIB@
 
 LIBCURSES	= libXCurses.a
@@ -42,38 +48,51 @@ LIB_DEPS        = -L$(PDCURSES_SRCDIR)/x11 -lXCurses
 
 PDCLIBS		= $(LIBCURSES) @SHL_TARGETS@
 
-DEMOS		= firework newdemo ptest rain testcurs tuidemo worm xmas
-DEMOOBJS	= firework.o newdemo.o ptest.o rain.o testcurs.o tui.o \
+DEMOS		= firework ozdemo ptest rain testcurs tuidemo worm xmas
+DEMOOBJS	= firework.o ozdemo.o ptest.o rain.o testcurs.o tui.o \
 tuidemo.o worm.o xmas.o
 
 SHLFILE		= XCurses
 
-all:	$(PDCLIBS) $(DEMOS)
+all:	$(PDCLIBS)
 
 install:
-	echo Does nothing at the moment
+	$(INSTALL) -d -m 755 $(libdir)
+	$(INSTALL) -d -m 755 $(bindir)
+	$(INSTALL) -d -m 755 $(includedir)
+	$(INSTALL) -d -m 755 $(includedir)/xcurses
+	$(INSTALL) -c -m 644 $(PDCURSES_CURSES_H) \
+		$(includedir)/xcurses/curses.h
+	$(INSTALL) -c -m 644 $(PDCURSES_SRCDIR)/panel.h \
+		$(includedir)/xcurses/panel.h
+	$(INSTALL) -c -m 644 $(osdir)/libXCurses.a $(libdir)/libXCurses.a
+	-$(RANLIB) $(libdir)/libXCurses.a
+	-$(INSTALL) -c -m 755 $(osdir)/$(SHLPRE)$(SHLFILE)$(SHLPST) \
+		$(libdir)/$(SHLPRE)$(SHLFILE)$(SHLPST)
+	$(INSTALL) -c -m 755 $(osdir)/xcurses-config $(bindir)/xcurses-config
 
 clean:
-	-rm -rf *.o *.sho trace $(PDCLIBS) $(DEMOS)
+	-rm -rf *.o *.sho trace $(PDCLIBS) $(DEMOS) config.log \
+		config.cache config.status
 
 demos:	$(DEMOS)
 
 distclean: clean
-	-rm -f Makefile
+	-rm -f Makefile config.h xcurses-config
 
 mostlyclean: clean
 
 realclean: distclean
 
 LIBOBJS = addch.o addchstr.o addstr.o attr.o beep.o bkgd.o border.o \
-clear.o color.o delch.o deleteln.o deprec.o getch.o getstr.o getyx.o \
+clear.o color.o delch.o deleteln.o getch.o getstr.o getyx.o \
 inch.o inchstr.o initscr.o inopts.o insch.o insstr.o instr.o kernel.o \
 keyname.o mouse.o move.o outopts.o overlay.o pad.o panel.o printw.o \
-refresh.o scanw.o scr_dump.o scroll.o slk.o termattr.o terminfo.o \
+refresh.o scanw.o scr_dump.o scroll.o slk.o termattr.o \
 touch.o util.o window.o debug.o
 
 PDCOBJS = pdcclip.o pdcdisp.o pdcgetsc.o pdckbd.o pdcscrn.o pdcsetsc.o \
-pdcutil.o pdcx11.o x11.o sb.o ScrollBox.o
+pdcutil.o sb.o scrlbox.o
 
 LIBSHOBJS = $(LIBOBJS:.o=.sho)
 PDCSHOBJS = $(PDCOBJS:.o=.sho)
@@ -91,7 +110,6 @@ $(LIBOBJS) $(PDCOBJS) $(SHOFILES) : $(PDCURSES_HEADERS)
 $(PDCOBJS) $(PDCSHOBJS) : $(PDCURSES_X11_H)
 $(DEMOOBJS) : $(PDCURSES_CURSES_H)
 $(DEMOS) : $(LIBCURSES)
-terminfo.o terminfo.sho: $(TERM_HEADER)
 
 addch.o: $(srcdir)/addch.c
 	$(BUILD) $(srcdir)/addch.c
@@ -125,9 +143,6 @@ delch.o: $(srcdir)/delch.c
 
 deleteln.o: $(srcdir)/deleteln.c
 	$(BUILD) $(srcdir)/deleteln.c
-
-deprec.o: $(srcdir)/deprec.c
-	$(BUILD) $(srcdir)/deprec.c
 
 getch.o: $(srcdir)/getch.c
 	$(BUILD) $(srcdir)/getch.c
@@ -204,9 +219,6 @@ slk.o: $(srcdir)/slk.c
 termattr.o: $(srcdir)/termattr.c
 	$(BUILD) $(srcdir)/termattr.c
 
-terminfo.o: $(srcdir)/terminfo.c
-	$(BUILD) $(srcdir)/terminfo.c
-
 touch.o: $(srcdir)/touch.c
 	$(BUILD) $(srcdir)/touch.c
 
@@ -240,17 +252,11 @@ pdcsetsc.o: $(osdir)/pdcsetsc.c
 pdcutil.o: $(osdir)/pdcutil.c
 	$(BUILD) $(osdir)/pdcutil.c
 
-pdcx11.o: $(osdir)/pdcx11.c
-	$(BUILD) $(osdir)/pdcx11.c
-
-ScrollBox.o: $(osdir)/ScrollBox.c
-	$(BUILD) $(osdir)/ScrollBox.c
+scrlbox.o: $(osdir)/scrlbox.c
+	$(BUILD) $(osdir)/scrlbox.c
 
 sb.o: $(osdir)/sb.c
 	$(BUILD) $(osdir)/sb.c
-
-x11.o: $(osdir)/x11.c
-	$(BUILD) $(osdir)/x11.c
 
 addch.sho: $(srcdir)/addch.c
 	$(DYN_BUILD) $(srcdir)/addch.c
@@ -294,10 +300,6 @@ delch.sho: $(srcdir)/delch.c
 
 deleteln.sho: $(srcdir)/deleteln.c
 	$(DYN_BUILD) $(srcdir)/deleteln.c
-	@SAVE2O@
-
-deprec.sho: $(srcdir)/deprec.c
-	$(DYN_BUILD) $(srcdir)/deprec.c
 	@SAVE2O@
 
 getch.sho: $(srcdir)/getch.c
@@ -400,10 +402,6 @@ termattr.sho: $(srcdir)/termattr.c
 	$(DYN_BUILD) $(srcdir)/termattr.c
 	@SAVE2O@
 
-terminfo.sho: $(srcdir)/terminfo.c
-	$(DYN_BUILD) $(srcdir)/terminfo.c
-	@SAVE2O@
-
 touch.sho: $(srcdir)/touch.c
 	$(DYN_BUILD) $(srcdir)/touch.c
 	@SAVE2O@
@@ -448,27 +446,19 @@ pdcutil.sho: $(osdir)/pdcutil.c
 	$(DYN_BUILD) $(osdir)/pdcutil.c
 	@SAVE2O@
 
-pdcx11.sho: $(osdir)/pdcx11.c
-	$(DYN_BUILD) $(osdir)/pdcx11.c
-	@SAVE2O@
-
-ScrollBox.sho: $(osdir)/ScrollBox.c
-	$(DYN_BUILD) $(osdir)/ScrollBox.c
+scrlbox.sho: $(osdir)/scrlbox.c
+	$(DYN_BUILD) $(osdir)/scrlbox.c
 	@SAVE2O@
 
 sb.sho: $(osdir)/sb.c
 	$(DYN_BUILD) $(osdir)/sb.c
 	@SAVE2O@
 
-x11.sho: $(osdir)/x11.c
-	$(DYN_BUILD) $(osdir)/x11.c
-	@SAVE2O@
-
 firework: firework.o
 	$(LINK) firework.o -o $@ $(LDFLAGS)
 
-newdemo: newdemo.o
-	$(LINK) newdemo.o -o $@ $(LDFLAGS)
+ozdemo: ozdemo.o
+	$(LINK) ozdemo.o -o $@ $(LDFLAGS)
 
 ptest: ptest.o
 	$(LINK) ptest.o -o $@ $(LDFLAGS)
@@ -491,8 +481,8 @@ xmas: xmas.o
 firework.o: $(demodir)/firework.c
 	$(BUILD) $(demodir)/firework.c
 
-newdemo.o: $(demodir)/newdemo.c
-	$(BUILD) $(demodir)/newdemo.c
+ozdemo.o: $(demodir)/ozdemo.c
+	$(BUILD) $(demodir)/ozdemo.c
 
 ptest.o: $(demodir)/ptest.c $(PDCURSES_SRCDIR)/panel.h
 	$(BUILD) $(demodir)/ptest.c
@@ -518,16 +508,16 @@ xmas.o: $(demodir)/xmas.c
 # This section provides for compiling and linking the
 # ncurses test programs.
 
-ncurses_testdir	= $(HOME)/ncurses-5.6/test
+ncurses_testdir	= $(HOME)/ncurses-6.1/test
 
-NCURSES_TESTS	= bs gdc hanoi knight tclock ncurses
+NCURSES_TESTS	= bs gdc hanoi knight tclock lrtest ncurses
 
 ncurses_tests: $(NCURSES_TESTS)
 
 ncurses_clean:
 	-rm -f *.o trace $(NCURSES_TESTS)
 
-NCFLAGS		= -I. -I$(ncurses_testdir)
+NCFLAGS		= -I$(demodir) -I$(ncurses_testdir)
 
 bs: bs.o $(LIBCURSES)
 	$(LINK) bs.o -o $@ $(LDFLAGS)
@@ -536,7 +526,7 @@ gdc: gdc.o $(LIBCURSES)
 	$(LINK) gdc.o -o $@ $(LDFLAGS)
 
 hanoi: hanoi.o $(LIBCURSES)
-	$(LINK) hanoi.o -o $@ $(LDFLAGS)
+	$(LINK) hanoi.o -o $@ $(LDFLAGS) -lm
 
 knight: knight.o $(LIBCURSES)
 	$(LINK) knight.o -o $@ $(LDFLAGS)
@@ -544,8 +534,8 @@ knight: knight.o $(LIBCURSES)
 tclock: tclock.o $(LIBCURSES)
 	$(LINK) tclock.o -o $@ $(LDFLAGS) -lm
 
-view: view.o $(LIBCURSES)
-	$(LINK) view.o -o $@ $(LDFLAGS)
+lrtest: lrtest.o $(LIBCURSES)
+	$(LINK) lrtest.o -o $@ $(LDFLAGS)
 
 ncurses: ncurses.o $(LIBCURSES)
 	$(LINK) ncurses.o -o $@ $(LDFLAGS)
@@ -565,8 +555,8 @@ knight.o: $(ncurses_testdir)/knight.c $(PDCURSES_CURSES_H)
 tclock.o: $(ncurses_testdir)/tclock.c $(PDCURSES_CURSES_H)
 	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/tclock.c
 
-view.o: $(ncurses_testdir)/view.c $(PDCURSES_CURSES_H)
-	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/view.c
+lrtest.o: $(ncurses_testdir)/lrtest.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/lrtest.c
 
 ncurses.o: $(ncurses_testdir)/ncurses.c $(PDCURSES_CURSES_H)
 	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/ncurses.c

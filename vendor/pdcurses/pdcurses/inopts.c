@@ -1,122 +1,135 @@
-/* Public Domain Curses */
+/* PDCurses */
 
 #include <curspriv.h>
 
-RCSID("$Id: inopts.c,v 1.43 2008/07/13 16:08:18 wmcbrine Exp $")
-
 /*man-start**************************************************************
 
-  Name:                                                         inopts
+inopts
+------
 
-  Synopsis:
-        int cbreak(void);
-        int nocbreak(void);
-        int echo(void);
-        int noecho(void);
-        int halfdelay(int tenths);
-        int intrflush(WINDOW *win, bool bf);
-        int keypad(WINDOW *win, bool bf);
-        int meta(WINDOW *win, bool bf);
-        int nl(void);
-        int nonl(void);
-        int nodelay(WINDOW *win, bool bf);
-        int notimeout(WINDOW *win, bool bf);
-        int raw(void);
-        int noraw(void);
-        void noqiflush(void);
-        void qiflush(void);
-        void timeout(int delay);
-        void wtimeout(WINDOW *win, int delay);
-        int typeahead(int fildes);
+### Synopsis
 
-        int crmode(void);
-        int nocrmode(void);
+    int cbreak(void);
+    int nocbreak(void);
+    int echo(void);
+    int noecho(void);
+    int halfdelay(int tenths);
+    int intrflush(WINDOW *win, bool bf);
+    int keypad(WINDOW *win, bool bf);
+    int meta(WINDOW *win, bool bf);
+    int nl(void);
+    int nonl(void);
+    int nodelay(WINDOW *win, bool bf);
+    int notimeout(WINDOW *win, bool bf);
+    int raw(void);
+    int noraw(void);
+    void noqiflush(void);
+    void qiflush(void);
+    void timeout(int delay);
+    void wtimeout(WINDOW *win, int delay);
+    int typeahead(int fildes);
 
-  Description:
-        cbreak() and nocbreak() toggle cbreak mode. In cbreak mode, 
-        characters typed by the user are made available immediately, and 
-        erase/kill character processing is not performed.  In nocbreak 
-        mode, typed characters are buffered until a newline or carriage 
-        return. Interrupt and flow control characters are unaffected by 
-        this mode. PDCurses always starts in cbreak mode.
+    int crmode(void);
+    int nocrmode(void);
 
-        echo() and noecho() control whether typed characters are echoed 
-        by the input routine.  Initially, input characters are echoed.  
-        Subsequent calls to echo() and noecho() do not flush type-ahead.
+    bool is_keypad(const WINDOW *win);
 
-        halfdelay() is similar to cbreak(), but allows for a time limit 
-        to be specified, in tenths of a second. This causes getch() to 
-        block for that period before returning ERR if no key has been 
-        received.  tenths must be between 1 and 255.
+### Description
 
-        keypad() controls whether getch() returns function/special keys 
-        as single key codes (e.g., the left arrow key as KEY_LEFT). Per 
-        X/Open, the default for keypad mode is OFF. You'll probably want 
-        it on. With keypad mode off, if a special key is pressed, 
-        getch() does nothing or returns ERR.
+   cbreak() and nocbreak() toggle cbreak mode. In cbreak mode,
+   characters typed by the user are made available immediately, and
+   erase/kill character processing is not performed. In nocbreak mode,
+   typed characters are buffered until a newline or carriage return.
+   Interrupt and flow control characters are unaffected by this mode.
+   PDCurses always starts in cbreak mode.
 
-        nodelay() controls whether wgetch() is a non-blocking call. If 
-        the option is enabled, and no input is ready, wgetch() will 
-        return ERR. If disabled, wgetch() will hang until input is 
-        ready.
+   echo() and noecho() control whether typed characters are echoed by
+   the input routine. Initially, input characters are echoed. Subsequent
+   calls to echo() and noecho() do not flush type-ahead.
 
-        nl() enables the translation of a carriage return into a newline 
-        on input. nonl() disables this. Initially, the translation does 
-        occur.
+   halfdelay() is similar to cbreak(), but allows for a time limit to be
+   specified, in tenths of a second. This causes getch() to block for
+   that period before returning ERR if no key has been received. tenths
+   must be between 1 and 255.
 
-        raw() and noraw() toggle raw mode. Raw mode is similar to cbreak 
-        mode, in that characters typed are immediately passed through to 
-        the user program.  The difference is that in raw mode, the INTR, 
-        QUIT, SUSP, and STOP characters are passed through without being 
-        interpreted, and without generating a signal.
+   keypad() controls whether getch() returns function/special keys as
+   single key codes (e.g., the left arrow key as KEY_LEFT). Per X/Open,
+   the default for keypad mode is OFF. You'll probably want it on. With
+   keypad mode off, if a special key is pressed, getch() does nothing or
+   returns ERR.
 
-        In PDCurses, the meta() function sets raw mode on or off.
+   nodelay() controls whether wgetch() is a non-blocking call. If the
+   option is enabled, and no input is ready, wgetch() will return ERR.
+   If disabled, wgetch() will hang until input is ready.
 
-        timeout() and wtimeout() set blocking or non-blocking reads for 
-        the specified window. The delay is measured in milliseconds. If 
-        it's negative, a blocking read is used; if zero, then non- 
-        blocking reads are done -- if no input is waiting, ERR is 
-        returned immediately. If the delay is positive, the read blocks 
-        for the delay period; if the period expires, ERR is returned.
+   nl() enables the translation of a carriage return into a newline on
+   input. nonl() disables this. Initially, the translation does occur.
 
-        intrflush(), notimeout(), noqiflush(), qiflush() and typeahead()
-        do nothing in PDCurses, but are included for compatibility with 
-        other curses implementations.
+   raw() and noraw() toggle raw mode. Raw mode is similar to cbreak
+   mode, in that characters typed are immediately passed through to the
+   user program. The difference is that in raw mode, the INTR, QUIT,
+   SUSP, and STOP characters are passed through without being
+   interpreted, and without generating a signal.
 
-        crmode() and nocrmode() are archaic equivalents to cbreak() and 
-        nocbreak(), respectively.
+   In PDCurses, the meta() function sets raw mode on or off.
 
-  Return Value:
-        All functions return OK on success and ERR on error.
+   timeout() and wtimeout() set blocking or non-blocking reads for the
+   specified window. If the delay is negative, a blocking read is used;
+   if zero, then non-blocking reads are done -- if no input is waiting,
+   ERR is returned immediately. If the delay is positive, the read
+   blocks for the delay period; if the period expires, ERR is returned.
+   The delay is given in milliseconds, but this is rounded down to 50ms
+   (1/20th sec) intervals, with a minimum of one interval if a postive
+   delay is given; i.e., 1-99 will wait 50ms, 100-149 will wait 100ms,
+   etc.
 
-  Portability                                X/Open    BSD    SYS V
-        cbreak                                  Y       Y       Y
-        nocbreak                                Y       Y       Y
-        echo                                    Y       Y       Y
-        noecho                                  Y       Y       Y
-        halfdelay                               Y       -       Y
-        intrflush                               Y       -       Y
-        keypad                                  Y       -       Y
-        meta                                    Y       -       Y
-        nl                                      Y       Y       Y
-        nonl                                    Y       Y       Y
-        nodelay                                 Y       -       Y
-        notimeout                               Y       -       Y
-        raw                                     Y       Y       Y
-        noraw                                   Y       Y       Y
-        noqiflush                               Y       -       Y
-        qiflush                                 Y       -       Y
-        timeout                                 Y       -       Y
-        wtimeout                                Y       -       Y
-        typeahead                               Y       -       Y
-        crmode                                  -
-        nocrmode                                -
+   intrflush(), notimeout(), noqiflush(), qiflush() and typeahead() do
+   nothing in PDCurses, but are included for compatibility with other
+   curses implementations.
+
+   crmode() and nocrmode() are archaic equivalents to cbreak() and
+   nocbreak(), respectively.
+
+   is_keypad() reports whether the specified window is in keypad mode.
+
+### Return Value
+
+   All functions except is_keypad() and the void functions return OK on
+   success and ERR on error.
+
+### Portability
+                             X/Open  ncurses  NetBSD
+    cbreak                      Y       Y       Y
+    nocbreak                    Y       Y       Y
+    echo                        Y       Y       Y
+    noecho                      Y       Y       Y
+    halfdelay                   Y       Y       Y
+    intrflush                   Y       Y       Y
+    keypad                      Y       Y       Y
+    meta                        Y       Y       Y
+    nl                          Y       Y       Y
+    nonl                        Y       Y       Y
+    nodelay                     Y       Y       Y
+    notimeout                   Y       Y       Y
+    raw                         Y       Y       Y
+    noraw                       Y       Y       Y
+    noqiflush                   Y       Y       Y
+    qiflush                     Y       Y       Y
+    timeout                     Y       Y       Y
+    wtimeout                    Y       Y       Y
+    typeahead                   Y       Y       Y
+    crmode                      Y       Y       Y
+    nocrmode                    Y       Y       Y
+    is_keypad                   -       Y       Y
 
 **man-end****************************************************************/
 
 int cbreak(void)
 {
     PDC_LOG(("cbreak() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     SP->cbreak = TRUE;
 
@@ -126,6 +139,9 @@ int cbreak(void)
 int nocbreak(void)
 {
     PDC_LOG(("nocbreak() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     SP->cbreak = FALSE;
     SP->delaytenths = 0;
@@ -137,6 +153,9 @@ int echo(void)
 {
     PDC_LOG(("echo() - called\n"));
 
+    if (!SP)
+        return ERR;
+
     SP->echo = TRUE;
 
     return OK;
@@ -145,6 +164,9 @@ int echo(void)
 int noecho(void)
 {
     PDC_LOG(("noecho() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     SP->echo = FALSE;
 
@@ -155,7 +177,7 @@ int halfdelay(int tenths)
 {
     PDC_LOG(("halfdelay() - called\n"));
 
-    if (tenths < 1 || tenths > 255)
+    if (!SP || tenths < 1 || tenths > 255)
         return ERR;
 
     SP->delaytenths = tenths;
@@ -186,6 +208,9 @@ int meta(WINDOW *win, bool bf)
 {
     PDC_LOG(("meta() - called\n"));
 
+    if (!SP)
+        return ERR;
+
     SP->raw_inp = bf;
 
     return OK;
@@ -195,6 +220,9 @@ int nl(void)
 {
     PDC_LOG(("nl() - called\n"));
 
+    if (!SP)
+        return ERR;
+
     SP->autocr = TRUE;
 
     return OK;
@@ -203,6 +231,9 @@ int nl(void)
 int nonl(void)
 {
     PDC_LOG(("nonl() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     SP->autocr = FALSE;
 
@@ -232,6 +263,9 @@ int raw(void)
 {
     PDC_LOG(("raw() - called\n"));
 
+    if (!SP)
+        return ERR;
+
     PDC_set_keyboard_binary(TRUE);
     SP->raw_inp = TRUE;
 
@@ -241,6 +275,9 @@ int raw(void)
 int noraw(void)
 {
     PDC_LOG(("noraw() - called\n"));
+
+    if (!SP)
+        return ERR;
 
     PDC_set_keyboard_binary(FALSE);
     SP->raw_inp = FALSE;
@@ -274,7 +311,7 @@ void wtimeout(WINDOW *win, int delay)
 
     if (delay < 0)
     {
-        /* This causes a blocking read on the window, so turn on delay 
+        /* This causes a blocking read on the window, so turn on delay
            mode */
 
         win->_nodelay = FALSE;
@@ -282,7 +319,7 @@ void wtimeout(WINDOW *win, int delay)
     }
     else if (!delay)
     {
-        /* This causes a non-blocking read on the window, so turn off 
+        /* This causes a non-blocking read on the window, so turn off
            delay mode */
 
         win->_nodelay = TRUE;
@@ -290,8 +327,8 @@ void wtimeout(WINDOW *win, int delay)
     }
     else
     {
-        /* This causes the read on the window to delay for the number of 
-           milliseconds. Also forces the window into non-blocking read 
+        /* This causes the read on the window to delay for the number of
+           milliseconds. Also forces the window into non-blocking read
            mode */
 
         /*win->_nodelay = TRUE;*/
@@ -318,4 +355,14 @@ int nocrmode(void)
     PDC_LOG(("nocrmode() - called\n"));
 
     return nocbreak();
+}
+
+bool is_keypad(const WINDOW *win)
+{
+    PDC_LOG(("is_keypad() - called\n"));
+
+    if (!win)
+        return FALSE;
+
+    return win->_use_keypad;
 }

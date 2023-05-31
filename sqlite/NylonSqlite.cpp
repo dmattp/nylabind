@@ -12,13 +12,16 @@
 # include "StdAfx.h"
 #endif
 
+#include <iostream>
 #include "nylon-runner.h"
 #include <sstream>
 
 #include <stdio.h>
+
 #ifdef _WINDOWS
 #define lrint(x) static_cast<int>(x) // (floor(x+(x>0) ? 0.5 : -0.5))
 #else
+# include <math.h>
 # include <sys/errno.h>
 #endif
 
@@ -670,7 +673,7 @@ namespace {
             sqlite3_close( db_ );
         }
 
-        int
+        int64_t
         lastRowId()
         {
             return sqlite3_last_insert_rowid( db_ );
@@ -809,7 +812,7 @@ namespace {
        
        
         void
-        exec( const std::string& statement, const luabind::object& params )
+        exec( std::string statement, luabind::object params )
         {
             auto copied = toCppFromOptBindingParams(params);
             try {
@@ -819,6 +822,16 @@ namespace {
                 freeParams( copied );
                 throw;
             }
+        }
+
+        void testInt( int foo )
+        {
+            std::cout << "testInt foo=" << foo << std::endl;
+        }
+        
+        void testVoid()
+        {
+            std::cout << "testVoid() called" << std::endl;
         }
     };  // end class NylonSqlite
 
@@ -893,17 +906,26 @@ namespace {
 #define DLLEXPORT __declspec(dllexport)
 #else
 #define DLLEXPORT
-#endif 
+#endif
+
+// extern "C" void* luabind_deboostified_allocator( void* context, void const* ptr, size_t sz )
+// {
+//     return realloc(const_cast<void*>(ptr), sz);
+// }
+
 
 extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
 {
    using namespace luabind;
 
-//   std::cout << "open NylonSqlite" << std::endl;
+//   std::cout << "open NylonSqlite" << std::endmail;
 
-   // open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
+   // luabind::open( L ); // wow, don't do this from a coroutine.  make sure the main prog inits luabind.
 
+   std::cout << "Open nylonsqlite.2, state=" << L << std::endl; 
+   
 //   std::cout << "NylonSqlite open.01a" << std::endl;
+//   luabind::allocator = luabind_deboostified_allocator;
 
    module( L ) [
       class_<SilkySqlite>("NylonSqlite")
@@ -916,6 +938,8 @@ extern "C" DLLEXPORT  int luaopen_NylonSqlite( lua_State* L )
       //////////////////////////////////////////////////////////////////
       .def( "selectMany", &SilkySqlite::selectMany )
       .def( "selectOne", &SilkySqlite::selectOne )
+      .def( "testInt", &SilkySqlite::testInt )
+      .def( "testVoid", &SilkySqlite::testVoid )
       .def( "exec", &SilkySqlite::exec ),
 
       class_<PreparedStatement>("SqlitePreparedStatement")

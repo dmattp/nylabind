@@ -1,27 +1,26 @@
-
-
-#include <Windows.h>
-#include <WTypes.h>
-#include <gdiplus.h>
-#include <iostream>
-#include <luabind/luabind.hpp>
-
-#include "nylon-runner.h"
-
-#include "objidl.h"
-#include "shlobj.h"
-
-
 #ifdef _WINDOWS
+# include <Windows.h>
+# include <WTypes.h>
+# include <gdiplus.h>
+# include "objidl.h"
+# include "shlobj.h"
 # include <codecvt>
+# include "evid.h"
 #else
 # include <locale>
 #endif
+
+#include <iostream>
+#include <luabind/luabind.hpp>
+#include "nylon-runner.h"
+
 
 
 
 namespace {
 
+#if _WINDOWS      
+    
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
     using namespace Gdiplus;
@@ -367,7 +366,6 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     }
 
 
-#if _WINDOWS      
 BOOL SetPrivilege(
     HANDLE hToken,          // access token handle
     LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
@@ -469,7 +467,17 @@ BOOL SetPrivilege(
 
         return times;
     }
-#endif 
+
+
+std::string
+CryptoRandom_( lua_State* L, int numBytes  )
+{
+    // std::string randomBytes(numBytes);
+    
+    return "";
+}
+#endif
+
 
     bool IsWindows()
     {
@@ -501,15 +509,20 @@ extern "C" DLLEXPORT  int luaopen_NylonOs( lua_State* L )
    // table of all registered classes.
 
    module( L, "NylonOs" ) [
+#ifdef _WINDOWS       
        namespace_("Static") [
            def("getclipboard",&getclipboard)
            ,def("getclipboard_ext",&getclipboard_ext)
            ,def("setclipboard",&setclipboard)
-       ]
-       ,def("IsWindows", &IsWindows)
+       ],
+#endif 
+        def("IsWindows", &IsWindows)
 #ifdef _WINDOWS       
        ,def( "addCreateGlobalPrivilege", &addCreateGlobalPrivilege )
        ,def( "GetFileTime", &GetFileTime_ )
+       ,def( "CryptoRandom", &CryptoRandom_ )
+       ,def( "NewEvid", &NewEvid )
+       ,def( "EvidTime", &EvidTime )
 #endif 
    ];
    
